@@ -1,0 +1,14 @@
+CREATE USER auth_user WITH PASSWORD 'auth_password';
+CREATE DATABASE auth OWNER auth_user;
+
+docker run -dit \
+  --name shopivo-auth \
+  --network shopivo-network \
+  -e DB_HOST=shopivo-postgres \
+  -e DB_PORT=5432 \
+  -e DB_USER=auth_user \
+  -e DB_PASSWORD=auth123 \
+  -e DB_NAME=auth \
+  -p 5001:5001 \
+  auth-service:latest
+

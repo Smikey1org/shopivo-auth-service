@@ -100,7 +100,7 @@ jobs:
       - name: Install Checkov
         run: pip install checkov
       - name: Run Checkov Dockerfile Scan
-        run: checkov -d . --framework Dockerfile --output json > checkov-dockerfile-report.json || true
+        run: checkov -d . --framework dockerfile --output json > checkov-dockerfile-report.json || true
       - name: Upload Checkov Dockerfile Artifact
         uses: actions/upload-artifact@v7
         with:

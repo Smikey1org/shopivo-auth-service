@@ -1,4 +1,4 @@
-name: Shopivo-Auth_service
+name: Shopivo-Auth-Service
 on:
   push:
     branches:

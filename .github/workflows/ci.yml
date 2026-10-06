@@ -74,7 +74,6 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: pip
 
       - name: Install Checkov
         run: pip install checkov
@@ -113,7 +112,7 @@ jobs:
             checkov-k8s-report.json
             checkov-dockerfile-report.json
           if-no-files-found: warn
-          archive: false
+          archive: true
 
   # ----------------------------------------------------------
   # TRIVY FILESYSTEM
@@ -158,7 +157,7 @@ jobs:
             trivy-fs-report.json
             trivy-fs-sbom-cyclonedx.json
           if-no-files-found: warn
-          archive: false
+          archive: true
 
   # ============================================================
   # QUALITY
@@ -290,7 +289,7 @@ jobs:
             package.json
             package-lock.json
           if-no-files-found: warn
-          archive: false
+          archive: true
 
   # ============================================================
   # DOCKER

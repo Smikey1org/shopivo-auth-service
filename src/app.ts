@@ -35,9 +35,12 @@ const userController = new UserController(
 
 app.get("/", (_req, res) => {
   res.json({
+    status: "ok",
     message: "Welcome to Auth API",
     service: "auth",
-    status: "ok",
+    database: "Postgres SQL",
+    language: "TypeScript",
+    framework: "Express",
   });
 });
 

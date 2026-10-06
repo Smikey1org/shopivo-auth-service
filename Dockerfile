@@ -17,6 +17,7 @@ COPY src/ ./src/
 RUN npm run prisma:generate
 RUN npm run build
 
+
 # =========================
 # Stage 2: Runtime
 # =========================
@@ -26,12 +27,17 @@ WORKDIR /auth-service
 
 ENV NODE_ENV=production
 
-USER node
+COPY package*.json ./
 
-COPY --from=builder --chown=node:node /myapp/node_modules ./node_modules
+RUN npm ci --omit=dev --omit=optional && rm -rf /usr/local/lib/node_modules/npm
+
 COPY --from=builder --chown=node:node /myapp/dist ./dist
 COPY --from=builder --chown=node:node /myapp/prisma ./prisma
 COPY --from=builder --chown=node:node /myapp/prisma.config.ts ./prisma.config.ts
+
+RUN chown -R node:node /auth-service
+
+USER node
 
 EXPOSE 5001
 

@@ -93,14 +93,16 @@ jobs:
             --framework kubernetes \
             --output json \
             > checkov-k8s-report.json
-
       - name: Checkov Dockerfile
         run: |
           checkov \
             -d . \
+            --skip-check CKV_DOCKER_2 \ 
             --framework dockerfile \
             --output json \
             > checkov-dockerfile-report.json
+        # TODO 1:  On Line 100, its making `CKV_DOCKER_2` to skip Health Check ci pipeline. 
+        # checkov:skip=CKV_DOCKER_2:Healthcheck is managed by the deployment platform        
 
       - name: Upload Checkov Reports
         if: always()

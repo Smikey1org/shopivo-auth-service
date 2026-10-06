@@ -315,9 +315,10 @@ jobs:
       # IMAGE TAG
       # ---------------------------------------------
       - name: Generate Image Tag
+        id: image-tag
         run: |
-          echo "IMAGE_TAG=${GITHUB_SHA::12}" >> "$GITHUB_ENV"
-          echo "IMAGE_TAG=${GITHUB_SHA::12}"
+          echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
+          echo "tag=${GITHUB_SHA::12}"
 
       # ---------------------------------------------
       # DOCKER LOGIN
@@ -345,7 +346,7 @@ jobs:
           push: false
 
           tags: |
-            ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+            ${{ env.IMAGE_NAME }}:${{ steps.image-tag.outputs.tag }}
 
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -365,7 +366,7 @@ jobs:
             --ignore-unfixed \
             --severity HIGH,CRITICAL \
             --exit-code 1 \
-            ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+            ${{ env.IMAGE_NAME }}:${{ steps.image-tag.outputs.tag }}
 
       # ---------------------------------------------
       # IMAGE SBOM
@@ -376,7 +377,7 @@ jobs:
             --format cyclonedx \
             --output image-sbom-cyclonedx.json \
             --exit-code 0 \
-            ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+            ${{ env.IMAGE_NAME }}:${{ steps.image-tag.outputs.tag }}
 
       - name: Upload Image SBOM
         if: always()
@@ -393,4 +394,4 @@ jobs:
       - name: Push Docker Image
         run: |
           docker push \
-            ${{ env.IMAGE_NAME }}:${{ env.IMAGE_TAG }}
+            ${{ env.IMAGE_NAME }}:${{ steps.image-tag.outputs.tag }}

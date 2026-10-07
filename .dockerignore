@@ -14,7 +14,6 @@ dist/
 build/
 generated/
 request/
-prisma/migrations
 
 # ================================
 # Test / coverage output

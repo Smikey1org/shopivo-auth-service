@@ -306,45 +306,35 @@ jobs:
 
     permissions:
       contents: read
+      
+    outputs:
+      image_digest: ${{ steps.image-digest.outputs.digest }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
-      # ---------------------------------------------
-      # IMAGE TAG
-      # ---------------------------------------------
       - name: Generate Image Tag
         id: image-tag
         run: |
           echo "tag=${GITHUB_SHA::12}" >> "$GITHUB_OUTPUT"
           echo "tag=${GITHUB_SHA::12}"
 
-      # ---------------------------------------------
-      # DOCKER LOGIN
-      # ---------------------------------------------
       - name: Login to Docker Hub
         uses: docker/login-action@v4
         with:
           username: ${{ vars.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-      # ---------------------------------------------
-      # BUILDX
-      # ---------------------------------------------
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v4
 
-      # ---------------------------------------------
-      # BUILD IMAGE
-      # ---------------------------------------------
       - name: Build Docker Image
         uses: docker/build-push-action@v7
         with:
           context: .
           load: true
           push: false
-
           tags: |
             ${{ env.IMAGE_NAME }}:${{ steps.image-tag.outputs.tag }}
 
@@ -395,3 +385,52 @@ jobs:
         run: |
           docker push \
             ${{ env.IMAGE_NAME }}:${{ steps.image-tag.outputs.tag }}
+
+      # After pushing to docker registery get Immutable Registry Digest
+      - name: Get Immutable Registry Digest of Image
+        id: image-digest
+        run: |
+          DIGEST=$(docker inspect \
+            --format='{{index .RepoDigests 0}}' \
+            "${{ env.IMAGE_NAME }}:${{ steps.image-tag.outputs.tag }}" \
+            | cut -d'@' -f2)
+
+          if [ -z "$DIGEST" ]; then
+            echo "Failed to obtain image digest"
+            exit 1
+          fi
+          echo "Image digest: $DIGEST"
+          echo "digest=$DIGEST" >> "$GITHUB_OUTPUT"
+
+  sign:
+    name: Sign Container Image
+    runs-on: ubuntu-latest
+
+    needs:
+      - docker
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4
+        with:
+          username: ${{ vars.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_TOKEN }}
+          
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign Image
+        env:
+          IMAGE: ${{ env.IMAGE_NAME }}
+          DIGEST: ${{ needs.docker.outputs.image_digest }}
+        run: |
+          echo "Signing:"
+          echo "${IMAGE}@${DIGEST}"
+
+          cosign sign \
+            --yes \
+            "${IMAGE}@${DIGEST}"
